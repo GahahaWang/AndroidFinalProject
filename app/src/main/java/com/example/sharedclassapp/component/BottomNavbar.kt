@@ -16,13 +16,14 @@ fun BottomNavBar(navController: NavHostController) {
     BottomNavigation(backgroundColor = Color(0xFF90CAF9)) {
         Screen.all.forEach { screen ->
             BottomNavigationItem(
-                icon = { Icon(screen.icon, contentDescription = screen.label) },
+                icon = {
+                    Icon(imageVector = screen.icon, contentDescription = screen.label)
+                },
                 label = { Text(screen.label) },
                 selected = currentRoute == screen.route,
                 onClick = {
                     if (currentRoute != screen.route) {
                         navController.navigate(screen.route) {
-                            // Prevent multiple copies of the same destination
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
                             }
