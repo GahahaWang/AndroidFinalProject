@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+
 data class Course(
     val name: String,
     val teacher: String,
@@ -118,7 +119,8 @@ fun AddCourseDialog(
     var selectedStartTime by remember { mutableStateOf("開始") }
     var selectedEndTime by remember { mutableStateOf("結束") }
     val days = listOf("一", "二", "三", "四", "五", "六", "日")
-    val times = listOf("08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00")
+    val start = listOf("08:20", "09:20", "10:20", "11:15", "12:10", "13:10", "14:10", "15:10", "16:05", "17:30", "18:30", "19:25", "20:20", "21:15")
+    val end = listOf("09:10", "10:10", "11:10", "12:05", "13:00", "14:00", "15:00", "16:00", "16:55", "18:20", "19:20", "20:15", "21:20", "21:15", "22:05")
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -156,14 +158,14 @@ fun AddCourseDialog(
                     )
                     DropdownMenuBox(
                         label = "開始",
-                        options = times,
+                        options = start,
                         selected = selectedStartTime,
                         onSelected = { selectedStartTime = it },
                         modifier = Modifier.weight(1f)
                     )
                     DropdownMenuBox(
                         label = "結束",
-                        options = times,
+                        options = end,
                         selected = selectedEndTime,
                         onSelected = { selectedEndTime = it },
                         modifier = Modifier.weight(1f)
