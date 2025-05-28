@@ -26,7 +26,7 @@ object Screen {
     val Add = ScreenItem("add", "Add", Icons.Filled.Add)
     val Home = ScreenItem("home", "Home", Icons.Filled.Home)
     val Settings = ScreenItem("settings", "Settings", Icons.Filled.Settings)
-    val Friend = ScreenItem("friends", "Friends", Icons.Filled.Person)
+    val Friend = ScreenItem("friend", "Friends", Icons.Filled.Person)
 
     val all = listOf(Home, Add, Friend, Settings)
 }
