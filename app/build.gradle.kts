@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "tw.edu.ntou.gahaha.android.androidfinalproject"
+    namespace = "com.example.sharedclassapp"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "tw.edu.ntou.gahaha.android.androidfinalproject"
+        applicationId = "com.example.sharedclassapp"
         minSdk = 35
         targetSdk = 35
         versionCode = 1
