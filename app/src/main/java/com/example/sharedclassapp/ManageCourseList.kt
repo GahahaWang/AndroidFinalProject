@@ -17,20 +17,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.sharedclassapp.viewmodel.CourseViewModel
 
 
 data class Course(
+    val id: Int,
     val name: String,
     val teacher: String,
     val classroom: String,
-    val time: String,
+    val dayOfWeek: Int,
+    val startTime: String,
+    val endTime: String,
     val courseCode: String? = null
 )
 
 @Composable
 fun ManageCourseListScreen(modifier: Modifier) {
-    val courseList = remember { mutableStateListOf<Course>() }
+    val viewModel: CourseViewModel = viewModel()
+    val courseList = viewModel.courseList
     var showDialog by remember { mutableStateOf(false) }
+    val reverseDayMap = mapOf(1 to "一", 2 to "二", 3 to "三", 4 to "四", 5 to "五", 6 to "六", 7 to "日")
+    val sortedCourses = courseList.sortedWith(compareBy({ it.dayOfWeek }, { it.startTime }))
 
     Column(
         modifier = modifier
@@ -39,7 +47,7 @@ fun ManageCourseListScreen(modifier: Modifier) {
     )
     {
         LazyColumn {
-            items(courseList) { course ->
+            items(sortedCourses) { course ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -61,12 +69,13 @@ fun ManageCourseListScreen(modifier: Modifier) {
                                 fontSize = 16.sp
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text("上課時間: ${course.time}")
+                            val dayStr = reverseDayMap[course.dayOfWeek] ?: "?"
+                            Text("上課時間: 星期$dayStr ${course.startTime} - ${course.endTime}")
                             Text("教授: ${course.teacher}")
                             Text("教室: ${course.classroom}")
                         }
                         IconButton(
-                            onClick = { courseList.remove(course) },
+                            onClick = { viewModel.deleteCourse(course) },
                             modifier = Modifier
                                 .size(40.dp)
                                 .background(Color.Red, shape = CircleShape)
@@ -82,15 +91,11 @@ fun ManageCourseListScreen(modifier: Modifier) {
     if (showDialog) {
         AddCourseDialog(
             onAdd = {
-                courseList.add(it)
+                viewModel.addCourse(it)
                 showDialog = false
             },
             onDismiss = { showDialog = false }
         )
-    }
-
-    LaunchedEffect(Unit) {
-        // Optional: Expose a way to trigger the dialog from the parent if needed
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -192,8 +197,19 @@ fun AddCourseDialog(
                     onClick = {
                         if (name.isNotBlank() && teacher.isNotBlank() && classroom.isNotBlank() &&
                             selectedDay != "星期" && selectedStartTime != "開始" && selectedEndTime != "結束") {
-                            val time = "星期$selectedDay $selectedStartTime - $selectedEndTime"
-                            onAdd(Course(name, teacher, classroom, time, courseCode.ifBlank { null }))
+                            val dayOfWeek = days.indexOf(selectedDay) + 1
+                            onAdd(
+                                Course(
+                                    id = 0,
+                                    name = name,
+                                    teacher = teacher,
+                                    classroom = classroom,
+                                    dayOfWeek = dayOfWeek,
+                                    startTime = selectedStartTime,
+                                    endTime = selectedEndTime,
+                                    courseCode = courseCode.ifBlank { null }
+                                )
+                            )
                         }
                     }
                 ) { Text("儲存") }
