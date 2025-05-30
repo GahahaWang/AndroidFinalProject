@@ -19,7 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sharedclassapp.viewmodel.CourseViewModel
-
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 
 data class Course(
     val id: Int,
@@ -90,6 +91,7 @@ fun ManageCourseListScreen(modifier: Modifier) {
 
     if (showDialog) {
         AddCourseDialog(
+            existingCourses = courseList,
             onAdd = {
                 viewModel.addCourse(it)
                 showDialog = false
@@ -114,8 +116,11 @@ fun ManageCourseListScreen(modifier: Modifier) {
 @Composable
 fun AddCourseDialog(
     onAdd: (Course) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    existingCourses: List<Course>
 ) {
+    val context = LocalContext.current
+
     var name by remember { mutableStateOf("") }
     var teacher by remember { mutableStateOf("") }
     var classroom by remember { mutableStateOf("") }
@@ -124,8 +129,11 @@ fun AddCourseDialog(
     var selectedStartTime by remember { mutableStateOf("開始") }
     var selectedEndTime by remember { mutableStateOf("結束") }
     val days = listOf("一", "二", "三", "四", "五", "六", "日")
-    val start = listOf("08:20", "09:20", "10:20", "11:15", "12:10", "13:10", "14:10", "15:10", "16:05", "17:30", "18:30", "19:25", "20:20", "21:15")
-    val end = listOf("09:10", "10:10", "11:10", "12:05", "13:00", "14:00", "15:00", "16:00", "16:55", "18:20", "19:20", "20:15", "21:20", "21:15", "22:05")
+    val periods = listOf(
+        "第一節", "第二節", "第三節", "第四節", "第五節", "第六節",
+        "第七節", "第八節", "第九節", "第十節", "第十一節", "第十二節",
+        "第十三節", "第十四節"
+    )
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -163,14 +171,14 @@ fun AddCourseDialog(
                     )
                     DropdownMenuBox(
                         label = "開始",
-                        options = start,
+                        options = periods,
                         selected = selectedStartTime,
                         onSelected = { selectedStartTime = it },
                         modifier = Modifier.weight(1f)
                     )
                     DropdownMenuBox(
                         label = "結束",
-                        options = end,
+                        options = periods,
                         selected = selectedEndTime,
                         onSelected = { selectedEndTime = it },
                         modifier = Modifier.weight(1f)
@@ -196,20 +204,41 @@ fun AddCourseDialog(
                 Button(
                     onClick = {
                         if (name.isNotBlank() && teacher.isNotBlank() && classroom.isNotBlank() &&
-                            selectedDay != "星期" && selectedStartTime != "開始" && selectedEndTime != "結束") {
+                            selectedDay != "星期" && selectedStartTime != "開始" && selectedEndTime != "結束"
+                        ) {
                             val dayOfWeek = days.indexOf(selectedDay) + 1
-                            onAdd(
-                                Course(
-                                    id = 0,
-                                    name = name,
-                                    teacher = teacher,
-                                    classroom = classroom,
-                                    dayOfWeek = dayOfWeek,
-                                    startTime = selectedStartTime,
-                                    endTime = selectedEndTime,
-                                    courseCode = courseCode.ifBlank { null }
-                                )
-                            )
+                            val startIndex = periods.indexOf(selectedStartTime)
+                            val endIndex = periods.indexOf(selectedEndTime)
+
+                            // Ensure valid range
+                            if (startIndex <= endIndex) {
+                                // 🔍 Check for conflicts
+                                val hasConflict = existingCourses.any {
+                                    it.dayOfWeek == dayOfWeek &&
+                                            periods.indexOf(it.startTime) <= endIndex &&
+                                            periods.indexOf(it.endTime) >= startIndex
+                                }
+
+                                if (hasConflict) {
+                                    Toast.makeText(context, "時間衝突，請選擇其他時段", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    onAdd(
+                                        Course(
+                                            id = 0,
+                                            name = name,
+                                            teacher = teacher,
+                                            classroom = classroom,
+                                            dayOfWeek = dayOfWeek,
+                                            startTime = selectedStartTime,
+                                            endTime = selectedEndTime,
+                                            courseCode = courseCode.ifBlank { null }
+                                        )
+                                    )
+                                    onDismiss()
+                                }
+                            } else {
+                                Toast.makeText(context, "結束節數不能早於開始節數", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
                 ) { Text("儲存") }
