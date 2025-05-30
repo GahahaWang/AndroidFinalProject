@@ -210,9 +210,7 @@ fun AddCourseDialog(
                             val startIndex = periods.indexOf(selectedStartTime)
                             val endIndex = periods.indexOf(selectedEndTime)
 
-                            // Ensure valid range
                             if (startIndex <= endIndex) {
-                                // 🔍 Check for conflicts
                                 val hasConflict = existingCourses.any {
                                     it.dayOfWeek == dayOfWeek &&
                                             periods.indexOf(it.startTime) <= endIndex &&
@@ -256,7 +254,7 @@ fun DropdownMenuBox(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier) {  // use the modifier passed in
+    Box(modifier = modifier) {
         OutlinedTextField(
             value = selected,
             onValueChange = {},
