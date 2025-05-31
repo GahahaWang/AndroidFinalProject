@@ -31,7 +31,7 @@ fun MainNavigation() {
         ) {
             composable(Screen.Home.route) { HomeScreen(modifier = Modifier) }
             composable(Screen.Add.route) { ManageCourseListScreen(modifier = Modifier) }
-            composable(Screen.Friend.route) { Text("Friends Page") }
+            composable(Screen.Friend.route) { ManageFriendListScreen(modifier = Modifier) }
             composable(Screen.Settings.route) { Text("Settings Page") }
         }
     }
