@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AndroidFinalProject"
+rootProject.name = "sharedapp"
 include(":app")
+ 
