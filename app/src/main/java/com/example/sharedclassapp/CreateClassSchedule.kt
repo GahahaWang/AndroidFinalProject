@@ -24,9 +24,16 @@ fun HomeScreen(modifier: Modifier) {
     val viewModel: CourseViewModel = viewModel()
     val courseList = viewModel.courseList
     val days = listOf("一", "二", "三", "四", "五", "六", "日")
+    val periodMap = mapOf(
+        "第一節" to 1, "第二節" to 2, "第三節" to 3, "第四節" to 4, "第五節" to 5,
+        "第六節" to 6, "第七節" to 7, "第八節" to 8, "第九節" to 9, "第十節" to 10,
+        "第十一節" to 11, "第十二節" to 12, "第十三節" to 13, "第十四節" to 14
+
+    )
     val periods = listOf(
         "第一節", "第二節", "第三節", "第四節", "第五節",
-        "第六節", "第七節", "第八節", "第九節", "第十節"
+        "第六節", "第七節", "第八節", "第九節", "第十節",
+        "第十一節", "第十二節", "第十三節", "第十四節"
     )
 
     // 建立一個 map 方便查詢課程
@@ -67,7 +74,7 @@ fun HomeScreen(modifier: Modifier) {
                 // 7 天欄
                 for (dayIdx in 1..7) {
                     val course = courseList.find {
-                        it.dayOfWeek == dayIdx && it.startTime == period
+                        it.dayOfWeek == dayIdx && periodMap[it.startTime]!! <= periodIdx +1 && periodMap[it.endTime]!! >= periodIdx +1
                     }
                     Card(
                         modifier = Modifier
