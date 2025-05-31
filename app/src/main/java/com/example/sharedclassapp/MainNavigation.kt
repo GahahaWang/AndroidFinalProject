@@ -26,10 +26,10 @@ fun MainNavigation() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Add.route,
+            startDestination = Screen.Home.route,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screen.Home.route) { Text("Home Page") }
+            composable(Screen.Home.route) { HomeScreen(modifier = Modifier) }
             composable(Screen.Add.route) { ManageCourseListScreen(modifier = Modifier) }
             composable(Screen.Friend.route) { Text("Friends Page") }
             composable(Screen.Settings.route) { Text("Settings Page") }

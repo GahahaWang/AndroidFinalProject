@@ -1,6 +1,7 @@
 package com.example.sharedclassapp
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,39 +18,75 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sharedclassapp.viewmodel.CourseViewModel
-class CreateClassSchedule {
-}
-
-
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(modifier: Modifier) {
     val viewModel: CourseViewModel = viewModel()
     val courseList = viewModel.courseList
-    val reverseDayMap = mapOf(1 to "一", 2 to "二", 3 to "三", 4 to "四", 5 to "五", 6 to "六", 7 to "日")
-    val sortedCourses = courseList.sortedWith(compareBy({ it.dayOfWeek }, { it.startTime }))
+    val days = listOf("一", "二", "三", "四", "五", "六", "日")
+    val periods = listOf(
+        "第一節", "第二節", "第三節", "第四節", "第五節",
+        "第六節", "第七節", "第八節", "第九節", "第十節"
+    )
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    // 建立一個 map 方便查詢課程
+    val courseMap = courseList.associateBy { Pair(it.dayOfWeek, it.startTime) }
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(8.dp)
+    ) {
         Text("我的課表", style = MaterialTheme.typography.h6)
         Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn {
-            items(sortedCourses) { course ->
-                Card(
+
+        // 表頭
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Text("", modifier = Modifier.weight(0.8f)) // 左上角空白
+            days.forEach { day ->
+                Text(
+                    text = "星期$day",
+                    modifier = Modifier.weight(1f),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        // 表格內容
+        periods.forEachIndexed { periodIdx, period ->
+            Row(modifier = Modifier.fillMaxWidth()) {
+                // 節次欄
+                Text(
+                    text = period,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    elevation = 2.dp
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            text = if (course.courseCode.isNullOrBlank()) course.name
-                            else "${course.name} (${course.courseCode})",
-                            fontWeight = FontWeight.Bold
-                        )
-                        val dayStr = reverseDayMap[course.dayOfWeek] ?: "?"
-                        Text("時間：星期$dayStr ${course.startTime} - ${course.endTime}")
-                        Text("教授：${course.teacher}")
-                        Text("教室：${course.classroom}")
+                        .weight(0.8f)
+                        .padding(2.dp),
+                    fontWeight = FontWeight.Bold
+                )
+                // 7 天欄
+                for (dayIdx in 1..7) {
+                    val course = courseList.find {
+                        it.dayOfWeek == dayIdx && it.startTime == period
+                    }
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(2.dp),
+                        elevation = 2.dp
+                    ) {
+                        Column(modifier = Modifier.padding(4.dp)) {
+                            if (course != null) {
+                                Text(
+                                    text = course.name,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = MaterialTheme.typography.body2.fontSize
+                                )
+                                Text(
+                                    text = course.classroom,
+                                    fontSize = MaterialTheme.typography.caption.fontSize
+                                )
+                            }
+                        }
                     }
                 }
             }
