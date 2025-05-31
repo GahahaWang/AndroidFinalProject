@@ -54,7 +54,8 @@ fun HomeScreen(modifier: Modifier) {
 
         // 表格內容
         periods.forEachIndexed { periodIdx, period ->
-            Row(modifier = Modifier.fillMaxWidth()) {
+            Row(modifier = Modifier.fillMaxWidth()
+                .height(50.dp)) {
                 // 節次欄
                 Text(
                     text = period,
@@ -71,7 +72,8 @@ fun HomeScreen(modifier: Modifier) {
                     Card(
                         modifier = Modifier
                             .weight(1f)
-                            .padding(2.dp),
+                            .padding(2.dp)
+                            .height(50.dp),
                         elevation = 2.dp
                     ) {
                         Column(modifier = Modifier.padding(4.dp)) {
