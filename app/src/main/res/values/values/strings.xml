@@ -1,6 +1,0 @@
-<resources>
-    <string name="app_name">Shared Class</string>
-    <string name="title_activity_login">Login</string>
-    <string name="username">username</string>
-    <string name="password" />
-</resources>
