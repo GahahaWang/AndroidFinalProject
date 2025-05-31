@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "sharedapp"
+rootProject.name = "sharedclassapp"
 include(":app")
  
