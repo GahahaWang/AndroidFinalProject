@@ -17,11 +17,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sharedclassapp.viewmodel.CourseViewModel
+import androidx.compose.runtime.*
+import com.google.gson.Gson
+import android.graphics.Bitmap
+import com.journeyapps.barcodescanner.BarcodeEncoder
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.AlertDialog
+import android.util.Base64
 
 @Composable
 fun HomeScreen(modifier: Modifier) {
     val viewModel: CourseViewModel = viewModel()
-    val courseList = viewModel.courseList // 這裡 courseList 會自動刷新
+    val courseList = viewModel.courseList
+    var showQrDialog by remember { mutableStateOf(false) }
+
     val days = listOf("一", "二", "三", "四", "五", "六", "日")
     val periodMap = mapOf(
         "第一節" to 1, "第二節" to 2, "第三節" to 3, "第四節" to 4, "第五節" to 5,
@@ -48,6 +59,10 @@ fun HomeScreen(modifier: Modifier) {
             Spacer(modifier = Modifier.weight(1f))
             Button(onClick = { viewModel.refresh() }) {
                 Text("刷新")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { showQrDialog = true }) {
+                Text("分享課表")
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -105,5 +120,33 @@ fun HomeScreen(modifier: Modifier) {
                 }
             }
         }
+    }
+
+    if (showQrDialog) {
+        val json = Gson().toJson(courseList)
+        // 將 JSON 內容進行 Base64 編碼，避免中文亂碼
+        val base64Json = remember(json) {
+            Base64.encodeToString(json.toByteArray(Charsets.UTF_8), Base64.DEFAULT)
+        }
+        val barcodeEncoder = remember { BarcodeEncoder() }
+        val bitmap = remember(base64Json) {
+            try {
+                barcodeEncoder.encodeBitmap(base64Json, com.google.zxing.BarcodeFormat.QR_CODE, 600, 600)
+            } catch (e: Exception) { null }
+        }
+        AlertDialog(
+            onDismissRequest = { showQrDialog = false },
+            title = { Text("我的課表 QRCode") },
+            text = {
+                if (bitmap != null) {
+                    Image(bitmap = bitmap.asImageBitmap(), contentDescription = "QRCode")
+                } else {
+                    Text("產生 QRCode 失敗")
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showQrDialog = false }) { Text("關閉") }
+            }
+        )
     }
 }

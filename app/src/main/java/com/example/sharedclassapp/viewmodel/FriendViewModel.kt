@@ -2,6 +2,7 @@ package com.example.sharedclassapp.viewmodel
 
 import android.app.Application
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sharedclassapp.Friend
@@ -13,7 +14,7 @@ class FriendViewModel(application: Application) : AndroidViewModel(application) 
 
     private val dao = FriendDatabase.getDatabase(application).friendDao()
     private val _friendList = mutableStateListOf<Friend>()
-    val friendList: List<Friend> get() = _friendList
+    val friendList: SnapshotStateList<Friend> get() = _friendList
 
     init {
         viewModelScope.launch {

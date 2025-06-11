@@ -1,5 +1,13 @@
 package com.example.sharedclassapp
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.gson.Gson
+import com.example.sharedclassapp.Course
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,7 +29,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sharedclassapp.viewmodel.FriendViewModel
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import javax.security.auth.Subject
+import android.util.Base64
+import androidx.navigation.NavController
 
 data class Friend(
     val id: Int,
@@ -31,24 +42,104 @@ data class Friend(
 )
 
 @Composable
-fun ManageFriendListScreen(modifier: Modifier) {
+fun ManageFriendListScreen(
+    modifier: Modifier,
+    navController: NavController // 新增這個參數
+) {
     val viewModel: FriendViewModel = viewModel()
     val friendList = viewModel.friendList
-    var showDialog by remember { mutableStateOf(false) }
-    val sortedFriends = friendList.sortedWith(compareBy({ it.name }))
+    val context = LocalContext.current
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    var scannedCourses by remember { mutableStateOf<List<Course>?>(null) }
+    var newFriendName by remember { mutableStateOf("") }
+
+    // 掃描 QRCode
+    val scanLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val contents = result.data?.getStringExtra("SCAN_RESULT")
+            if (contents != null) {
+                // Base64 解碼
+                try {
+                    val decoded = String(Base64.decode(contents, Base64.DEFAULT), Charsets.UTF_8)
+                    val courseList = Gson().fromJson(decoded, Array<Course>::class.java).toList()
+                    scannedCourses = courseList
+                    showAddDialog = true
+                } catch (e: Exception) {
+                    Toast.makeText(context, "解析課表失敗", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    // 權限請求
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val intent = Intent(context, QrScanActivity::class.java)
+            scanLauncher.launch(intent)
+        } else {
+            Toast.makeText(context, "請允許相機權限以掃描 QRCode", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // 新增朋友 Dialog
+    if (showAddDialog && scannedCourses != null) {
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false },
+            title = { Text("新增朋友") },
+            text = {
+                Column {
+                    Text("請輸入朋友名稱：")
+                    OutlinedTextField(
+                        value = newFriendName,
+                        onValueChange = { newFriendName = it },
+                        label = { Text("朋友名稱") }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.addFriend(
+                        Friend(
+                            id = 0,
+                            name = newFriendName,
+                            subject = Gson().toJson(scannedCourses)
+                        )
+                    )
+                    showAddDialog = false
+                    newFriendName = ""
+                    scannedCourses = null
+                }) { Text("新增") }
+            },
+            dismissButton = {
+                Button(onClick = {
+                    showAddDialog = false
+                    newFriendName = ""
+                    scannedCourses = null
+                }) { Text("取消") }
+            }
+        )
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars)
-    )
-    {
+    ) {
         LazyColumn {
-            items(sortedFriends) { friend ->
+            items(friendList) { friend ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 6.dp)
+                        .clickable {
+                            // 導航到 FriendCourseScreen
+                            navController.navigate("friendCourse/${friend.id}")
+                        },
                     elevation = 4.dp,
                     shape = RoundedCornerShape(16.dp),
                     backgroundColor = Color(0xFFE0E0E0)
@@ -84,35 +175,28 @@ fun ManageFriendListScreen(modifier: Modifier) {
         }
     }
 
-    if (showDialog) {
-        AddFriendDialog(
-            existingFriends = friendList,
-            onAdd = {
-                viewModel.addFriend(it)
-                showDialog = false
-            },
-            onDismiss = { showDialog = false }
-        )
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
-        FloatingActionButton(
-            onClick = { showDialog = true },
-            backgroundColor = Color(0xFF0D47A1),
+        Row(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Friend", tint = Color.White)
+            Spacer(modifier = Modifier.width(16.dp))
+            FloatingActionButton(
+                onClick = {
+                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                        == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        val intent = Intent(context, QrScanActivity::class.java)
+                        scanLauncher.launch(intent)
+                    } else {
+                        permissionLauncher.launch(Manifest.permission.CAMERA)
+                    }
+                },
+                backgroundColor = Color(0xFF388E3C)
+            ) {
+                Icon(Icons.Default.QrCode, contentDescription = "Scan QR", tint = Color.White)
+            }
         }
     }
-}
-
-@Composable
-fun AddFriendDialog(
-    onAdd: (Friend) -> Unit,
-    onDismiss: () -> Unit,
-    existingFriends: List<Friend>
-) {
-
 }
