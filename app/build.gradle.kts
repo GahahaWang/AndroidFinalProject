@@ -46,6 +46,7 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -53,10 +54,18 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+<<<<<<< HEAD
     implementation("androidx.compose.ui:ui:1.8.2")
     implementation("androidx.compose.material:material:1.8.2")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.compose.ui:ui-tooling-preview:1.8.2")
+=======
+    implementation("androidx.compose.ui:ui:1.6.5")
+    implementation(libs.androidx.constraintlayout)
+    implementation("androidx.compose.material:material:1.6.5")
+    implementation("androidx.compose.material:material-icons-extended:1.6.0")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.6.5")
+>>>>>>> amos
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.navigation:navigation-compose:2.9.0")
