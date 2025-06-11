@@ -153,6 +153,21 @@ fun ManageFriendListScreen(
         )
     }
 
+    var showScanChoiceDialog by remember { mutableStateOf(false) }
+
+    // 新增相簿選擇的 launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            // 這裡你可以將 uri 傳給你的 QrScanActivity 或直接處理圖片解碼
+            val intent = Intent(context, QrScanActivity::class.java).apply {
+                putExtra("IMAGE_URI", uri.toString())
+            }
+            scanLauncher.launch(intent)
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -211,19 +226,56 @@ fun ManageFriendListScreen(
             Spacer(modifier = Modifier.width(16.dp))
             FloatingActionButton(
                 onClick = {
-                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                        == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        val intent = Intent(context, QrScanActivity::class.java)
-                        scanLauncher.launch(intent)
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
+                    showScanChoiceDialog = true
                 },
                 backgroundColor = Color(0xFF388E3C)
             ) {
                 Icon(Icons.Default.QrCode, contentDescription = "Scan QR", tint = Color.White)
             }
         }
+    }
+
+    // 彈出選擇來源的 Dialog
+    if (showScanChoiceDialog) {
+        AlertDialog(
+            onDismissRequest = { showScanChoiceDialog = false },
+            title = { Text("選擇掃描方式") },
+            text = {
+                Column {
+                    Button(
+                        onClick = {
+                            showScanChoiceDialog = false
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                                == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                val intent = Intent(context, QrScanActivity::class.java)
+                                scanLauncher.launch(intent)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("相機掃描")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            showScanChoiceDialog = false
+                            galleryLauncher.launch("image/*")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("從相簿選擇")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                Button(onClick = { showScanChoiceDialog = false }) {
+                    Text("取消")
+                }
+            }
+        )
     }
 }
