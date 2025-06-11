@@ -1,5 +1,13 @@
 package com.example.sharedclassapp
 
+import android.Manifest
+import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.gson.Gson
+import com.example.sharedclassapp.Course
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,35 +29,160 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sharedclassapp.viewmodel.FriendViewModel
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import javax.security.auth.Subject
+import android.util.Base64
+import androidx.navigation.NavController
 
 data class Friend(
     val id: Int,
     val name: String,
     val friendCode: String? = null,
     val subject: String? = null,
+    val school: String? = null,
+    val courseListJson: String? = null // 新增課表欄位
 )
 
 @Composable
-fun ManageFriendListScreen(modifier: Modifier) {
+fun ManageFriendListScreen(
+    modifier: Modifier,
+    navController: NavController // 新增這個參數
+) {
     val viewModel: FriendViewModel = viewModel()
     val friendList = viewModel.friendList
-    var showDialog by remember { mutableStateOf(false) }
-    val reverseDayMap = mapOf(1 to "一", 2 to "二", 3 to "三", 4 to "四", 5 to "五", 6 to "六", 7 to "日")
-    val sortedFriends = friendList.sortedWith(compareBy({ it.name }))
+    val context = LocalContext.current
+
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newFriendName by remember { mutableStateOf("") }
+    var newFriendCode by remember { mutableStateOf("") }
+    var newFriendSubject by remember { mutableStateOf("") }
+    var newFriendSchool by remember { mutableStateOf("") }
+    var newFriendCourseListJson by remember { mutableStateOf("") }
+
+    // 掃描 QRCode
+    val scanLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val contents = result.data?.getStringExtra("SCAN_RESULT")
+            if (contents != null) {
+                // Base64 解碼
+                try {
+                    val decoded = String(Base64.decode(contents, Base64.DEFAULT), Charsets.UTF_8)
+                    val jsonObj = Gson().fromJson(decoded, Map::class.java)
+                    val name = jsonObj["name"] as? String ?: "無名氏"
+                    val friendCode = jsonObj["friendCode"] as? String ?: ""
+                    val subject = jsonObj["subject"] as? String ?: "未知科系"
+                    val school = jsonObj["school"] as? String ?: "未知學校"
+                    // 這裡修正 ↓↓↓
+                    val coursesListJson = when (val c = jsonObj["courses"]) {
+                        is String -> c
+                        else -> Gson().toJson(c) // 如果不是字串就轉成字串
+                    }
+                    newFriendName = name
+                    newFriendCode = friendCode
+                    newFriendSubject = subject
+                    newFriendSchool = school
+                    newFriendCourseListJson = coursesListJson
+                    showAddDialog = true
+                } catch (e: Exception) {
+                    Toast.makeText(context, "解析課表失敗", Toast.LENGTH_SHORT).show()
+                    print(e)
+                }
+            }
+        }
+    }
+
+    // 權限請求
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val intent = Intent(context, QrScanActivity::class.java)
+            scanLauncher.launch(intent)
+        } else {
+            Toast.makeText(context, "請允許相機權限以掃描 QRCode", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // 新增朋友 Dialog
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false },
+            title = { Text("新增朋友") },
+            text = {
+                Column {
+                    Text("請輸入朋友名稱：")
+                    OutlinedTextField(
+                        value = newFriendName,
+                        onValueChange = { newFriendName = it },
+                        label = { Text("朋友名稱") }
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    viewModel.addFriend(
+                        Friend(
+                            id = 0,
+                            name = newFriendName,
+                            subject = newFriendSubject,
+                            friendCode = newFriendCode,
+                            school = newFriendSchool,
+                            courseListJson = newFriendCourseListJson // 新增這行
+                        )
+                    )
+                    showAddDialog = false
+                    newFriendName = ""
+                    newFriendCode = ""
+                    newFriendSubject = ""
+                    newFriendSchool = ""
+                    newFriendCourseListJson = ""
+                }) { Text("新增") }
+            },
+            dismissButton = {
+                Button(onClick = {
+                    showAddDialog = false
+                    newFriendName = ""
+                    newFriendCode = ""
+                    newFriendSubject = ""
+                    newFriendSchool = ""
+                    newFriendCourseListJson = ""
+                }) { Text("取消") }
+            }
+        )
+    }
+
+    var showScanChoiceDialog by remember { mutableStateOf(false) }
+
+    // 新增相簿選擇的 launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            // 這裡你可以將 uri 傳給你的 QrScanActivity 或直接處理圖片解碼
+            val intent = Intent(context, QrScanActivity::class.java).apply {
+                putExtra("IMAGE_URI", uri.toString())
+            }
+            scanLauncher.launch(intent)
+        }
+    }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars)
-    )
-    {
+    ) {
         LazyColumn {
-            items(sortedFriends) { friend ->
+            items(friendList) { friend ->
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 6.dp)
+                        .clickable {
+                            // 導航到 FriendCourseScreen
+                            navController.navigate("friendCourse/${friend.friendCode}")
+                        },
                     elevation = 4.dp,
                     shape = RoundedCornerShape(16.dp),
                     backgroundColor = Color(0xFFE0E0E0)
@@ -67,9 +200,8 @@ fun ManageFriendListScreen(modifier: Modifier) {
                                 fontSize = 16.sp
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(friend.name)
+                            Text(friend.school ?: "未知學校")
                             Text(friend.subject ?: "無科目")
-                            Text(friend.friendCode ?: "無好友碼")
                         }
                         IconButton(
                             onClick = { viewModel.deleteFriend(friend) },
@@ -85,35 +217,65 @@ fun ManageFriendListScreen(modifier: Modifier) {
         }
     }
 
-    if (showDialog) {
-        AddFriendDialog(
-            existingFriends = friendList,
-            onAdd = {
-                viewModel.addFriend(it)
-                showDialog = false
-            },
-            onDismiss = { showDialog = false }
-        )
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
-        FloatingActionButton(
-            onClick = { showDialog = true },
-            backgroundColor = Color(0xFF0D47A1),
+        Row(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Add Friend", tint = Color.White)
+            Spacer(modifier = Modifier.width(16.dp))
+            FloatingActionButton(
+                onClick = {
+                    showScanChoiceDialog = true
+                },
+                backgroundColor = Color(0xFF388E3C)
+            ) {
+                Icon(Icons.Default.QrCode, contentDescription = "Scan QR", tint = Color.White)
+            }
         }
     }
-}
 
-@Composable
-fun AddFriendDialog(
-    onAdd: (Friend) -> Unit,
-    onDismiss: () -> Unit,
-    existingFriends: List<Friend>
-) {
-
+    // 彈出選擇來源的 Dialog
+    if (showScanChoiceDialog) {
+        AlertDialog(
+            onDismissRequest = { showScanChoiceDialog = false },
+            title = { Text("選擇掃描方式") },
+            text = {
+                Column {
+                    Button(
+                        onClick = {
+                            showScanChoiceDialog = false
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
+                                == PackageManager.PERMISSION_GRANTED
+                            ) {
+                                val intent = Intent(context, QrScanActivity::class.java)
+                                scanLauncher.launch(intent)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("相機掃描")
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            showScanChoiceDialog = false
+                            galleryLauncher.launch("image/*")
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("從相簿選擇")
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                Button(onClick = { showScanChoiceDialog = false }) {
+                    Text("取消")
+                }
+            }
+        )
+    }
 }

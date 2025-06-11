@@ -68,10 +68,20 @@ dependencies {
 >>>>>>> amos
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+<<<<<<< HEAD
     implementation("androidx.navigation:navigation-compose:2.9.0")
     implementation("androidx.room:room-runtime:2.7.1")
     kapt("androidx.room:room-compiler:2.7.1")
     implementation("androidx.room:room-ktx:2.7.1")
+=======
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    implementation ("com.google.zxing:core:3.5.2")
+    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation ("com.google.code.gson:gson:2.10.1")
+>>>>>>> origin/gahaha
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -21,8 +21,10 @@ class FriendViewModel(application: Application) : AndroidViewModel(application) 
                 Friend(
                     id = it.id,
                     name = it.name,
-
-                    friendCode = it.friendCode
+                    friendCode = it.friendCode,
+                    subject = it.subject,
+                    school = it.school,
+                    courseListJson = it.courseListJson
                 )
             }
             _friendList.addAll(storedFriends)
@@ -34,17 +36,25 @@ class FriendViewModel(application: Application) : AndroidViewModel(application) 
             val id = dao.insert(
                 FriendEntity(
                     name = friend.name,
-                    friendCode = friend.friendCode
+                    friendCode = friend.friendCode,
+                    subject = friend.subject,
+                    school = friend.school,
+                    courseListJson = friend.courseListJson
                 )
             ).toInt()
-
-            _friendList.add(
+            // 新增後重新查詢資料庫，確保 id 正確
+            _friendList.clear()
+            val storedFriends = dao.getAll().map {
                 Friend(
-                    id = id,
-                    name = friend.name,
-                    friendCode = friend.friendCode
+                    id = it.id,
+                    name = it.name,
+                    friendCode = it.friendCode,
+                    subject = it.subject,
+                    school = it.school,
+                    courseListJson = it.courseListJson
                 )
-            )
+            }
+            _friendList.addAll(storedFriends)
         }
     }
 
@@ -54,7 +64,10 @@ class FriendViewModel(application: Application) : AndroidViewModel(application) 
                 FriendEntity(
                     id = friend.id,
                     name = friend.name,
-                    friendCode = friend.friendCode
+                    friendCode = friend.friendCode,
+                    subject = friend.subject,
+                    school = friend.school,
+                    courseListJson = friend.courseListJson
                 )
             )
             _friendList.remove(friend)
