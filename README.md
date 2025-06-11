@@ -20,9 +20,9 @@ SharedClassApp 是一款專為大學生設計的課表分享與好友管理應�
 
 ## 畫面截圖
 
-| 主畫面 | 課表 QRCode | 好友列表 | 好友課表 |
-|:------:|:-----------:|:--------:|:--------:|
-| ![主畫面](docs/screenshot_home.png) | ![QRCode](docs/screenshot_qr.png) | ![好友列表](docs/screenshot_friends.png) | ![好友課表](docs/screenshot_friend_course.png) |
+|               主畫面                |                新增課堂                |                 好友列表                 |                 個人資料                 |
+|:--------------------------------:|:----------------------------------:|:------------------------------------:|:------------------------------------:|
+| ![主畫面](docs/screenshot_home.png) | ![QRCode](docs/screenshot_add.png) | ![好友列表](docs/screenshot_friends.png) | ![好友課表](docs/screenshot_setting.png) |
 
 ---
 
@@ -30,5 +30,5 @@ SharedClassApp 是一款專為大學生設計的課表分享與好友管理應�
 
 1. **Clone 專案**
    ```sh
-   git clone https://github.com/yourname/AndroidFinalProject.git
+   git clone https://github.com/GahahaWang/AndroidFinalProject.git
    ```
