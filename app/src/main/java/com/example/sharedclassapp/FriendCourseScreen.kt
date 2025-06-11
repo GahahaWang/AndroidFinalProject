@@ -63,15 +63,11 @@ fun FriendCourseScreen(friend: Friend, modifier: Modifier = Modifier) {
 
         // 表格內容
         periods.forEachIndexed { periodIdx, period ->
-<<<<<<< HEAD:app/src/main/java/com/example/sharedclassapp/CreateClassSchedule.kt
-            Row(modifier = Modifier.fillMaxWidth()) {
-=======
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
->>>>>>> origin/gahaha:app/src/main/java/com/example/sharedclassapp/FriendCourseScreen.kt
                 // 節次欄
                 Text(
                     text = period,
