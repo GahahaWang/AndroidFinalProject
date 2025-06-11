@@ -21,7 +21,6 @@ class FriendViewModel(application: Application) : AndroidViewModel(application) 
                 Friend(
                     id = it.id,
                     name = it.name,
-
                     friendCode = it.friendCode
                 )
             }

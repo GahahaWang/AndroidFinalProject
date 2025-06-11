@@ -35,7 +35,6 @@ fun ManageFriendListScreen(modifier: Modifier) {
     val viewModel: FriendViewModel = viewModel()
     val friendList = viewModel.friendList
     var showDialog by remember { mutableStateOf(false) }
-    val reverseDayMap = mapOf(1 to "一", 2 to "二", 3 to "三", 4 to "四", 5 to "五", 6 to "六", 7 to "日")
     val sortedFriends = friendList.sortedWith(compareBy({ it.name }))
 
     Column(

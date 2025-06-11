@@ -8,8 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -22,7 +21,7 @@ import com.example.sharedclassapp.viewmodel.CourseViewModel
 @Composable
 fun HomeScreen(modifier: Modifier) {
     val viewModel: CourseViewModel = viewModel()
-    val courseList = viewModel.courseList
+    val courseList = viewModel.courseList // 這裡 courseList 會自動刷新
     val days = listOf("一", "二", "三", "四", "五", "六", "日")
     val periodMap = mapOf(
         "第一節" to 1, "第二節" to 2, "第三節" to 3, "第四節" to 4, "第五節" to 5,
@@ -44,7 +43,13 @@ fun HomeScreen(modifier: Modifier) {
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        Text("我的課表", style = MaterialTheme.typography.h6)
+        Row {
+            Text("我的課表", style = MaterialTheme.typography.h6)
+            Spacer(modifier = Modifier.weight(1f))
+            Button(onClick = { viewModel.refresh() }) {
+                Text("刷新")
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
 
         // 表頭
