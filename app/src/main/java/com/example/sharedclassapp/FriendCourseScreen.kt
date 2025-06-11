@@ -3,13 +3,29 @@ import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.sharedclassapp.Course
+import com.example.sharedclassapp.Friend
+import com.google.gson.Gson
 
 @Composable
-fun FriendCourseScreen(courseList: List<Course>, modifier: Modifier = Modifier) {
+fun FriendCourseScreen(friend: Friend, modifier: Modifier = Modifier) {
+
+    // 解析朋友課表 JSON
+    val courseList = remember(friend.courseListJson) {
+        try {
+            Gson().fromJson(
+                friend.courseListJson,
+                Array<Course>::class.java
+            )?.toList() ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
     val days = listOf("一", "二", "三", "四", "五", "六", "日")
     val periodMap = mapOf(
         "第一節" to 1, "第二節" to 2, "第三節" to 3, "第四節" to 4, "第五節" to 5,
@@ -27,7 +43,10 @@ fun FriendCourseScreen(courseList: List<Course>, modifier: Modifier = Modifier) 
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        Text("朋友的課表", style = MaterialTheme.typography.h6)
+        Text(
+            "${friend.name} 的課表  ${friend.school ?: ""} ${friend.subject ?: ""}",
+            style = MaterialTheme.typography.h6
+        )
         Spacer(modifier = Modifier.height(8.dp))
 
         // 表頭

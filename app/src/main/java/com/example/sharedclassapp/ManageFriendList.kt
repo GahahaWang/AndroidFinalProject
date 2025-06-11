@@ -39,6 +39,8 @@ data class Friend(
     val name: String,
     val friendCode: String? = null,
     val subject: String? = null,
+    val school: String? = null,
+    val courseListJson: String? = null // 新增課表欄位
 )
 
 @Composable
@@ -51,8 +53,11 @@ fun ManageFriendListScreen(
     val context = LocalContext.current
 
     var showAddDialog by remember { mutableStateOf(false) }
-    var scannedCourses by remember { mutableStateOf<List<Course>?>(null) }
     var newFriendName by remember { mutableStateOf("") }
+    var newFriendCode by remember { mutableStateOf("") }
+    var newFriendSubject by remember { mutableStateOf("") }
+    var newFriendSchool by remember { mutableStateOf("") }
+    var newFriendCourseListJson by remember { mutableStateOf("") }
 
     // 掃描 QRCode
     val scanLauncher = rememberLauncherForActivityResult(
@@ -64,11 +69,25 @@ fun ManageFriendListScreen(
                 // Base64 解碼
                 try {
                     val decoded = String(Base64.decode(contents, Base64.DEFAULT), Charsets.UTF_8)
-                    val courseList = Gson().fromJson(decoded, Array<Course>::class.java).toList()
-                    scannedCourses = courseList
+                    val jsonObj = Gson().fromJson(decoded, Map::class.java)
+                    val name = jsonObj["name"] as? String ?: "無名氏"
+                    val friendCode = jsonObj["friendCode"] as? String ?: ""
+                    val subject = jsonObj["subject"] as? String ?: "未知科系"
+                    val school = jsonObj["school"] as? String ?: "未知學校"
+                    // 這裡修正 ↓↓↓
+                    val coursesListJson = when (val c = jsonObj["courses"]) {
+                        is String -> c
+                        else -> Gson().toJson(c) // 如果不是字串就轉成字串
+                    }
+                    newFriendName = name
+                    newFriendCode = friendCode
+                    newFriendSubject = subject
+                    newFriendSchool = school
+                    newFriendCourseListJson = coursesListJson
                     showAddDialog = true
                 } catch (e: Exception) {
                     Toast.makeText(context, "解析課表失敗", Toast.LENGTH_SHORT).show()
+                    print(e)
                 }
             }
         }
@@ -87,7 +106,7 @@ fun ManageFriendListScreen(
     }
 
     // 新增朋友 Dialog
-    if (showAddDialog && scannedCourses != null) {
+    if (showAddDialog) {
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
             title = { Text("新增朋友") },
@@ -107,19 +126,28 @@ fun ManageFriendListScreen(
                         Friend(
                             id = 0,
                             name = newFriendName,
-                            subject = Gson().toJson(scannedCourses)
+                            subject = newFriendSubject,
+                            friendCode = newFriendCode,
+                            school = newFriendSchool,
+                            courseListJson = newFriendCourseListJson // 新增這行
                         )
                     )
                     showAddDialog = false
                     newFriendName = ""
-                    scannedCourses = null
+                    newFriendCode = ""
+                    newFriendSubject = ""
+                    newFriendSchool = ""
+                    newFriendCourseListJson = ""
                 }) { Text("新增") }
             },
             dismissButton = {
                 Button(onClick = {
                     showAddDialog = false
                     newFriendName = ""
-                    scannedCourses = null
+                    newFriendCode = ""
+                    newFriendSubject = ""
+                    newFriendSchool = ""
+                    newFriendCourseListJson = ""
                 }) { Text("取消") }
             }
         )
@@ -138,7 +166,7 @@ fun ManageFriendListScreen(
                         .padding(vertical = 6.dp)
                         .clickable {
                             // 導航到 FriendCourseScreen
-                            navController.navigate("friendCourse/${friend.id}")
+                            navController.navigate("friendCourse/${friend.friendCode}")
                         },
                     elevation = 4.dp,
                     shape = RoundedCornerShape(16.dp),
@@ -157,9 +185,8 @@ fun ManageFriendListScreen(
                                 fontSize = 16.sp
                             )
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text(friend.name)
+                            Text(friend.school ?: "未知學校")
                             Text(friend.subject ?: "無科目")
-                            Text(friend.friendCode ?: "無好友碼")
                         }
                         IconButton(
                             onClick = { viewModel.deleteFriend(friend) },

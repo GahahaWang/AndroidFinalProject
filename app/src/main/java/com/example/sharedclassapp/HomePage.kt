@@ -1,5 +1,7 @@
 package com.example.sharedclassapp
 
+import android.util.Base64
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -7,29 +9,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sharedclassapp.viewmodel.CourseViewModel
-import androidx.compose.runtime.*
+import com.example.sharedclassapp.viewmodel.UserViewModel
 import com.google.gson.Gson
-import android.graphics.Bitmap
 import com.journeyapps.barcodescanner.BarcodeEncoder
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.AlertDialog
-import android.util.Base64
 
 @Composable
 fun HomeScreen(modifier: Modifier) {
     val viewModel: CourseViewModel = viewModel()
+    val userViewModel: UserViewModel = viewModel()
+    val profile by userViewModel.profile.collectAsState()
     val courseList = viewModel.courseList
     var showQrDialog by remember { mutableStateOf(false) }
 
@@ -123,8 +125,16 @@ fun HomeScreen(modifier: Modifier) {
     }
 
     if (showQrDialog) {
-        val json = Gson().toJson(courseList)
-        // 將 JSON 內容進行 Base64 編碼，避免中文亂碼
+        // 將課表與個人資訊一起打包，courseList 轉成 JSON 字串
+        val courseListJson = Gson().toJson(courseList)
+        val shareData = mapOf(
+            "name" to profile.name,
+            "friendCode" to profile.uuid,
+            "school" to profile.school,
+            "subject" to profile.subject,
+            "courses" to courseListJson // 這裡改成字串Json,
+        )
+        val json = Gson().toJson(shareData)
         val base64Json = remember(json) {
             Base64.encodeToString(json.toByteArray(Charsets.UTF_8), Base64.DEFAULT)
         }
