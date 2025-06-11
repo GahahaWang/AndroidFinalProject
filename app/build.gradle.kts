@@ -54,26 +54,21 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-<<<<<<< HEAD
     implementation("androidx.compose.ui:ui:1.8.2")
     implementation("androidx.compose.material:material:1.8.2")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.compose.ui:ui-tooling-preview:1.8.2")
-=======
     implementation("androidx.compose.ui:ui:1.6.5")
     implementation(libs.androidx.constraintlayout)
     implementation("androidx.compose.material:material:1.6.5")
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.5")
->>>>>>> amos
     implementation("androidx.activity:activity-compose:1.9.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-<<<<<<< HEAD
     implementation("androidx.navigation:navigation-compose:2.9.0")
     implementation("androidx.room:room-runtime:2.7.1")
     kapt("androidx.room:room-compiler:2.7.1")
     implementation("androidx.room:room-ktx:2.7.1")
-=======
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
@@ -81,8 +76,6 @@ dependencies {
     implementation ("com.google.zxing:core:3.5.2")
     implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation ("com.google.code.gson:gson:2.10.1")
->>>>>>> origin/gahaha
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
